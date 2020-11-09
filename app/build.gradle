@@ -7,7 +7,7 @@ android {
     compileSdkVersion 29
     buildToolsVersion "30.0.2"
 
-    greendao{
+    greendao {
         schemaVersion 1
         daoPackage 'indi.ssuf1998.vqrscan.greendao'
         targetGenDir 'src/main/java'
@@ -18,15 +18,27 @@ android {
         minSdkVersion 24
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
+        versionName "0.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            applicationVariants.all {variant->
+                variant.outputs.all {output ->
+                    def outputFile = output.outputFile
+                    if (outputFile != null && outputFile.name.endsWith(".apk")){
+                        def fn = "${defaultConfig.applicationId}_release" +
+                                "_v${defaultConfig.versionName}" +
+                                "_${defaultConfig.versionCode}"
+                        fn = fn.replace(".", "_") + ".apk"
+                        outputFileName = fn
+                    }
+                }
+            }
         }
     }
 
@@ -38,6 +50,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
 }
 
 dependencies {
