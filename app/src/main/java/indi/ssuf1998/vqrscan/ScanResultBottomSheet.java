@@ -91,11 +91,15 @@ public class ScanResultBottomSheet extends BaseBottomSheet {
                 clipboard.setPrimaryClip(clip);
                 Toasty.info(getContext(), getString(R.string.copy_suc_msg), Toast.LENGTH_SHORT).show();
             }
-            mBtnClickListener.onClick(v, ButtonId.COPY_BTN);
+            if (mBtnClickListener != null) {
+                mBtnClickListener.onClick(v, ButtonId.COPY_BTN);
+            }
         });
         binding.openResultBtn.setOnClickListener(v -> {
-            openResult(getContext());
-            mBtnClickListener.onClick(v, ButtonId.OPEN_BTN);
+            innerOpenResult(getContext(), 0);
+            if (mBtnClickListener != null) {
+                mBtnClickListener.onClick(v, ButtonId.OPEN_BTN);
+            }
         });
 
         binding.resultText.setMovementMethod(ScrollingMovementMethod.getInstance());
@@ -106,7 +110,7 @@ public class ScanResultBottomSheet extends BaseBottomSheet {
         });
     }
 
-    public void openResult(Context context) {
+    private void innerOpenResult(Context context, int code) {
         if (context == null)
             return;
 
@@ -115,8 +119,12 @@ public class ScanResultBottomSheet extends BaseBottomSheet {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(uri);
-            ((Activity) Objects.requireNonNull(context)).startActivityForResult(intent, Const.DIRECTLY_OPENED);
+            ((Activity) Objects.requireNonNull(context)).startActivityForResult(intent, code);
         }
+    }
+
+    public void openResult(Context context) {
+        innerOpenResult(context, Const.DIRECTLY_OPENED);
     }
 
     public String getResultText() {

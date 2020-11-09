@@ -160,12 +160,6 @@ public class MainActivity extends mActivity {
             }
         }, ContextCompat.getMainExecutor(this));
 
-        scanSheet.setOnBtnClickListener((v, btn) -> {
-            if (btn == ScanResultBottomSheet.ButtonId.OPEN_BTN) {
-                scanSheet.dismiss();
-            }
-        });
-
         scanSheet.setOnShowListener(this::unbindCamera);
         scanSheet.setOnDismissListener(this::bindCamera);
 
