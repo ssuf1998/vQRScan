@@ -1,0 +1,3 @@
+include ':bhbottomsheet'
+include ':app'
+rootProject.name = "vQRScan"

@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+    id 'org.greenrobot.greendao'
+}
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "30.0.2"
+
+    greendao{
+        schemaVersion 1
+        daoPackage 'indi.ssuf1998.vqrscan.greendao'
+        targetGenDir 'src/main/java'
+    }
+
+    defaultConfig {
+        applicationId "indi.ssuf1998.vqrscan"
+        minSdkVersion 24
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    testImplementation 'junit:junit:4.13.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    def camerax_version = "1.0.0-beta11"
+    implementation "androidx.camera:camera-camera2:$camerax_version"
+    implementation "androidx.camera:camera-lifecycle:$camerax_version"
+    implementation "androidx.camera:camera-view:1.0.0-alpha18"
+    implementation "com.google.zxing:core:3.4.1"
+    implementation 'com.github.GrenderG:Toasty:1.5.0'
+    implementation project(path: ':bhbottomsheet')
+    implementation 'org.greenrobot:greendao:3.3.0'
+
+}

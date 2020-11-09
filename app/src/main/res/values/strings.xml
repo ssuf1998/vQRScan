@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">vQRScan</string>
+    <string name="copy_result_btn">复制</string>
+    <string name="open_url_btn">打开链接</string>
+    <string name="no_permission_text">没有相机权限，请尝试重新授权。</string>
+    <string name="try_again_btn">重试</string>
+    <string name="exit_btn">退出</string>
+    <string name="scan_sheet_title">扫描结果</string>
+    <string name="menu_sheet_title">更多</string>
+    <string name="menu_item_pick_pic">从相册中选取</string>
+    <string name="menu_item_settings">设置</string>
+    <string name="menu_item_history">扫码历史</string>
+    <string name="menu_item_exit">退出程序</string>
+    <string name="err_file_not_find">未找到文件</string>
+    <string name="err_not_detect">未检测出有效二维码</string>
+    <string name="copy_suc_msg">复制成功</string>
+    <string name="history_activity_title">扫码历史</string>
+    <string name="history_menu_clear">清空历史</string>
+    <string name="history_clear_dialog_msg">确定要清空扫码历史吗？</string>
+    <string name="dialog_yes">是</string>
+    <string name="dialog_no">否</string>
+    <string name="done_msg">已执行操作</string>
+    <string name="empty_history_msg">扫码历史为空</string>
+    <string name="settings_activity_title">设置</string>
+    <string name="settings_directly_open">扫码后直接打开</string>
+    <string name="settings_directly_open_sub">如果扫码结果可以打开</string>
+    <string name="setting_toggle_history">记录扫码历史</string>
+    <string name="toggle_on">开启</string>
+    <string name="toggle_off">关闭</string>
+    <string name="settings_about">关于</string>
+    <string name="about" translatable="false">
+        作者GitHub：https://github.com/ssuf1998
+    </string>
+    <string name="settings_toggle_vibrate">使用振动</string>
+</resources>

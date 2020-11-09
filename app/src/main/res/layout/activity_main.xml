@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    tools:context=".MainActivity">
+
+    <include
+        android:id="@+id/noPermissionLayout"
+        layout="@layout/no_permission_layout" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/scanLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/mPreviewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <indi.ssuf1998.vqrscan.CameraEffectView
+            android:id="@+id/mEffectView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:fitsSystemWindows="true">
+
+        <ImageButton
+            android:id="@+id/menuImgBtn"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="menuImgBtn"
+            android:foreground="@drawable/white_ripple"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_baseline_more_horiz_24"
+            android:tint="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/pickPicImgBtn"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="24dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="pickPicImgBtn"
+            android:foreground="@drawable/white_ripple"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_baseline_image_24"
+            android:tint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ImageButton
+            android:id="@+id/historyImgBtn"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="24dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="historyImgBtn"
+            android:foreground="@drawable/white_ripple"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_baseline_history_24"
+            android:tint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

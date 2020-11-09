@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="BHBottomSheet">
+        <attr name="cornerRoundRadius" format="dimension|reference" />
+        <attr name="bgColor" format="color|reference" />
+        <attr name="titleTextSize" format="dimension|reference" />
+        <attr name="titleTextColor" format="color|reference" />
+        <attr name="subTitleTextSize" format="dimension|reference" />
+        <attr name="subTitleTextColor" format="color|reference" />
+
+        <attr name="itemPrefHeight" format="dimension|reference" />
+        <attr name="itemTextSize" format="dimension|reference" />
+        <attr name="itemTextColor" format="color|reference" />
+
+        <attr name="immersiveMode" format="boolean"/>
+    </declare-styleable>
+    <declare-styleable name="BHBottomSheetStyle">
+        <attr name="BHBottomSheetTheme" format="reference" />
+    </declare-styleable>
+</resources>
