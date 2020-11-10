@@ -11,6 +11,7 @@
 
     <ImageView
         android:id="@+id/itemIcon"
+
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:contentDescription="itemIcon"
@@ -30,7 +31,7 @@
         android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@id/itemSubText"
-        app:layout_constraintEnd_toStartOf="@id/itemSwitch"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/itemIcon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
@@ -46,17 +47,8 @@
         android:textColor="@color/text_gray"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/itemSwitch"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/itemIcon"
         app:layout_constraintTop_toBottomOf="@id/itemText" />
-
-    <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/itemSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="32dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,12 +1,10 @@
 package indi.ssuf1998.vqrscan;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
@@ -17,15 +15,13 @@ import java.util.Locale;
 import indi.ssuf1998.vqrscan.databinding.HistoryItemLayoutBinding;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.VH> {
-    private final Context context;
     private final List<HistoryItem> items;
     private ItemClickListener mItemClickListener;
 
     private static final SimpleDateFormat dateFormat =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
 
-    public HistoryAdapter(List<HistoryItem> items, Context context) {
-        this.context = context;
+    public HistoryAdapter(List<HistoryItem> items) {
         this.items = items;
     }
 
@@ -49,10 +45,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.VH> {
     public void onBindViewHolder(@NonNull VH holder, int position) {
         final HistoryItem item = items.get(position);
 
-        holder.binding.itemIcon.setImageDrawable(
-                ContextCompat.getDrawable(context,
-                        Utils.ResultTypeIcon.get(item.getResultType(),
-                                R.drawable.ic_baseline_text_fields_24))
+        holder.binding.itemIcon.setImageResource(
+                Utils.ResultTypeIcon.get(item.getResultType(),
+                        R.drawable.ic_baseline_text_fields_24)
         );
 
         holder.binding.itemText.setText(item.getResultText());

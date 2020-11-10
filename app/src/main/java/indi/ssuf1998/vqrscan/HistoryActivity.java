@@ -61,7 +61,7 @@ public class HistoryActivity extends mActivity {
 
         scanSheet = new ScanResultBottomSheet(getString(R.string.scan_sheet_title));
 
-        adapter = new HistoryAdapter(items, this);
+        adapter = new HistoryAdapter(items);
         final LinearLayoutManager layoutMgr = new LinearLayoutManager(this);
 
         binding.historyRecyclerView.setAdapter(adapter);
@@ -98,7 +98,7 @@ public class HistoryActivity extends mActivity {
     @Override
     protected void initDB() {
         if (!sharedHelper.contains("db_session")) {
-             System.exit(0);
+            System.exit(0);
             // 开发用！
             // 一般情况下直接system.exit得了
 //            mOpenHelper helper = new mOpenHelper(this, "vqrscan-db");

@@ -32,4 +32,5 @@
         作者GitHub：https://github.com/ssuf1998
     </string>
     <string name="settings_toggle_vibrate">使用振动</string>
+    <string name="exiting_msg">再次点击退出App</string>
 </resources>

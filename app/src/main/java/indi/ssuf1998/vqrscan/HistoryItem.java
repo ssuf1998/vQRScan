@@ -26,6 +26,7 @@ public class HistoryItem {
         this("", Utils.ResultType.PLAIN_TEXT, 0);
     }
 
+
     @Generated(hash = 1354959903)
     public HistoryItem(Long id, String resultText, int resultType,
             long createTime) {

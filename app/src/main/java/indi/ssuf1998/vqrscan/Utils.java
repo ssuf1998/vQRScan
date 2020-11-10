@@ -16,6 +16,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class Utils {
@@ -35,13 +36,17 @@ public class Utils {
         drawable.setBounds(0, 0,
                 cvs.getWidth(), cvs.getHeight());
         drawable.draw(cvs);
-        bmp = applyColorMaskBmp(bmp, v.getImageTintList().getDefaultColor());
+        bmp = Objects.requireNonNull(
+                applyColorMaskBmp(bmp, v.getImageTintList().getDefaultColor())
+        );
 
         cvs.setBitmap(shadow);
         drawable.setBounds(offsetX, offsetY,
                 cvs.getWidth() + offsetX, cvs.getHeight() + offsetY);
         drawable.draw(cvs);
-        shadow = applyColorMaskBmp(shadow, shadowColor);
+        shadow = Objects.requireNonNull(
+                applyColorMaskBmp(shadow, shadowColor)
+        );
         bmpBlur(shadow, r);
 
         final Bitmap result = Bitmap.createBitmap(
@@ -67,7 +72,7 @@ public class Utils {
     }
 
     public static Bitmap applyColorMaskBmp(@NonNull Bitmap src, int color) {
-        if (src == null || src.isRecycled())
+        if (src.isRecycled())
             return null;
 
         final Bitmap maskBmp = Bitmap.createBitmap(
@@ -95,7 +100,7 @@ public class Utils {
     }
 
     public static void bmpBlur(@NonNull Bitmap bmp, int r) {
-        final Context c = MainActivity.outerThis.get();
+        final Context c = MainActivity.getWeakRef().get();
         if (c == null || bmp.isRecycled())
             return;
 

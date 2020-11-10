@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -39,7 +40,6 @@ import com.google.zxing.Result;
 import org.greenrobot.greendao.database.Database;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,27 +59,19 @@ public class MainActivity extends mActivity {
 
     private ListenableFuture<ProcessCameraProvider> providerFuture;
     private ProcessCameraProvider provider;
-    private final Preview preview = new Preview.Builder()
-            .build();
-    private final CameraSelector cameraSelector = new CameraSelector.Builder()
-            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-            .build();
-    private final ImageAnalysis analysis = new ImageAnalysis.Builder()
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build();
+    private int deg;
     private Camera camera;
     private final ZXingAnalyzer analyzer = new ZXingAnalyzer();
 
     private ScanResultBottomSheet scanSheet;
     private MenuBottomSheet menuSheet;
 
-    static WeakReference<Context> outerThis;
+    private boolean exiting = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        outerThis = new WeakReference<>(getApplicationContext());
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -92,31 +84,33 @@ public class MainActivity extends mActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        analyzer.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        analyzer.resume();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!exiting) {
+            exiting = true;
+            new Handler().postDelayed(() -> {
+                exiting = false;
+            }, 2000);
+            Toasty.info(this, getString(R.string.exiting_msg), Toasty.LENGTH_SHORT).show();
+        } else {
+            System.exit(0);
+        }
+    }
+
+    @Override
     public void initUI() {
         providerFuture = ProcessCameraProvider.getInstance(this);
-        preview.setSurfaceProvider(binding.mPreviewView.getSurfaceProvider());
-        final OrientationEventListener mOrientationEventListener =
-                new OrientationEventListener(this) {
-                    @Override
-                    public void onOrientationChanged(int orientation) {
-                        if (analysis == null)
-                            return;
-
-                        final int deg;
-                        if (orientation >= 45 && orientation < 135) {
-                            deg = Surface.ROTATION_270;
-                        } else if (orientation >= 135 && orientation < 225) {
-                            deg = Surface.ROTATION_180;
-                        } else if (orientation >= 225 && orientation < 315) {
-                            deg = Surface.ROTATION_90;
-                        } else {
-                            deg = Surface.ROTATION_0;
-                        }
-
-                        analysis.setTargetRotation(deg);
-                    }
-                };
-        mOrientationEventListener.enable();
 
         scanSheet = new ScanResultBottomSheet(getString(R.string.scan_sheet_title));
 
@@ -132,9 +126,6 @@ public class MainActivity extends mActivity {
 
         menuSheet = new MenuBottomSheet(getString(R.string.menu_sheet_title), items);
         menuSheet.setDecoration(new RecycleViewDivider(this));
-
-        binding.mEffectView.getScanBarAnim().setStartDelay(500);
-        binding.mEffectView.getScanBarAnim().start();
 
         Utils.applyShadow(binding.menuImgBtn,
                 0, 0, 11,
@@ -160,8 +151,11 @@ public class MainActivity extends mActivity {
             }
         }, ContextCompat.getMainExecutor(this));
 
-        scanSheet.setOnShowListener(this::unbindCamera);
-        scanSheet.setOnDismissListener(this::bindCamera);
+        scanSheet.setOnShowListener(analyzer::pause);
+        scanSheet.setOnDismissListener(() -> {
+            analyzer.resume();
+            camera.getCameraControl().setZoomRatio(1);
+        });
 
         menuSheet.setOnItemClickListener(idx -> {
             if (idx == 0) {
@@ -174,11 +168,19 @@ public class MainActivity extends mActivity {
             menuSheet.dismiss();
         });
 
-        menuSheet.setOnShowListener(this::unbindCamera);
-        menuSheet.setOnDismissListener(this::bindCamera);
+        menuSheet.setOnShowListener(analyzer::pause);
+        menuSheet.setOnDismissListener(analyzer::resume);
 
         analyzer.setOnDetectListener(this::handleDetect);
-        analysis.setAnalyzer(ContextCompat.getMainExecutor(this), analyzer);
+        analyzer.setOnLowLightListener(light -> {
+            Log.d("!!!", String.valueOf(light));
+        });
+        analyzer.setOnTimeOutListener(() -> {
+            final float zoom = camera.getCameraInfo().getZoomState().getValue().getZoomRatio();
+            if (zoom < 2) {
+                camera.getCameraControl().setZoomRatio(zoom + 0.5f);
+            }
+        });
 
         binding.mEffectView.setOnTouchListener((v, event) -> {
             final int action = event.getAction();
@@ -201,20 +203,48 @@ public class MainActivity extends mActivity {
         });
     }
 
-
     private void bindCamera() {
-        if (provider != null && !provider.isBound(analysis)) {
-            camera = provider.bindToLifecycle(
-                    this, cameraSelector, preview, analysis);
-            binding.mEffectView.getScanBarAnim().resume();
-        }
-    }
+        final CameraSelector selector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
 
-    private void unbindCamera() {
-        if (provider != null && provider.isBound(analysis)) {
-            provider.unbindAll();
-            binding.mEffectView.getScanBarAnim().pause();
-        }
+        final Preview preview = new Preview.Builder()
+                .build();
+
+        final ImageAnalysis analysis = new ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build();
+
+        analysis.setAnalyzer(ContextCompat.getMainExecutor(this), analyzer);
+
+        final OrientationEventListener mOrientationEventListener =
+                new OrientationEventListener(this) {
+                    @Override
+                    public void onOrientationChanged(int orientation) {
+                        if (analysis == null)
+                            return;
+
+                        if (orientation >= 45 && orientation < 135) {
+                            deg = Surface.ROTATION_270;
+                        } else if (orientation >= 135 && orientation < 225) {
+                            deg = Surface.ROTATION_180;
+                        } else if (orientation >= 225 && orientation < 315) {
+                            deg = Surface.ROTATION_90;
+                        } else {
+                            deg = Surface.ROTATION_0;
+                        }
+
+                        analysis.setTargetRotation(deg);
+                    }
+                };
+        mOrientationEventListener.enable();
+
+        preview.setSurfaceProvider(binding.mPreviewView.getSurfaceProvider());
+
+        camera = provider.bindToLifecycle(
+                this, selector, preview, analysis);
+
+        binding.mEffectView.getScanBarAnim().start();
     }
 
     private void setFocus(float x, float y) {
@@ -234,9 +264,9 @@ public class MainActivity extends mActivity {
     }
 
     private void handleDetect(Result result) {
-        unbindCamera();
+        analyzer.pause();
 
-        if (preferences.getBoolean(Const.SETTINGS_TOGGLE_VIBRATE, true)){
+        if (preferences.getBoolean(Const.SETTINGS_TOGGLE_VIBRATE, true)) {
             final Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
             vibrator.vibrate(50);
         }
@@ -246,7 +276,7 @@ public class MainActivity extends mActivity {
                         result,
                         binding.mEffectView.getWidth(),
                         binding.mEffectView.getHeight(),
-                        analysis.getTargetRotation()
+                        deg
                 );
         binding.mEffectView.setDetectDotPos(center[0], center[1]);
         binding.mEffectView.getDetectDotAnim().start();
@@ -335,7 +365,7 @@ public class MainActivity extends mActivity {
         }
 
         if (requestCode == Const.DIRECTLY_OPENED) {
-            bindCamera();
+            analyzer.resume();
         }
     }
 

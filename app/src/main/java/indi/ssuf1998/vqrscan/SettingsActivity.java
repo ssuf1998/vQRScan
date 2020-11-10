@@ -3,29 +3,23 @@ package indi.ssuf1998.vqrscan;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import es.dmoral.toasty.Toasty;
 import indi.ssuf1998.vqrscan.databinding.ActivitySettingsBinding;
-import indi.ssuf1998.vqrscan.greendao.DaoSession;
-import indi.ssuf1998.vqrscan.greendao.HistoryItemDao;
+import indi.ssuf1998.vqrscan.settings.SettingsAdapter;
+import indi.ssuf1998.vqrscan.settings.SettingsBaseItem;
+import indi.ssuf1998.vqrscan.settings.SettingsSwitchItem;
 
 public class SettingsActivity extends mActivity {
     private ActivitySettingsBinding binding;
 
-    private final List<SettingsSimpleItem<?>> items = new ArrayList<>();
+    private final List<SettingsBaseItem<?>> items = new ArrayList<>();
     private AlertDialog.Builder aboutDialog;
 
     @Override
@@ -81,12 +75,12 @@ public class SettingsActivity extends mActivity {
                 .setPositiveButton(getString(R.string.dialog_yes), null);
 
         items.add(
-                new SettingsSimpleItem<Void>(getString(R.string.settings_about), null)
+                new SettingsBaseItem.SettingsSimpleItem(getString(R.string.settings_about), null)
                         .setItemIcon(R.drawable.ic_baseline_info_24)
                         .setOnItemClickListener(v -> aboutDialog.show())
         );
 
-        final SettingsAdapter adapter = new SettingsAdapter(items, this);
+        final SettingsAdapter adapter = new SettingsAdapter(items);
         final LinearLayoutManager layoutMgr = new LinearLayoutManager(this);
 
         binding.settingsRecyclerView.setAdapter(adapter);

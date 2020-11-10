@@ -2,8 +2,12 @@ package indi.ssuf1998.vqrscan;
 
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
+import android.os.Handler;
+import android.util.Log;
 import android.view.Surface;
+import android.widget.Toast;
 
+import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
@@ -25,6 +29,9 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import es.dmoral.toasty.Toasty;
 
 public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
     private final MultiFormatReader reader = new MultiFormatReader();
@@ -33,8 +40,18 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
             ImageFormat.YUV_422_888,
             ImageFormat.YUV_444_888
     );
+    private static final int YSampleStep = 10;
+    private static final int LowLightThread = 60;
+    private static final int analyzeDelay = 500;
+    private long lastTS;
+    private long lastDetectTS;
+    private int timeOutThread = 5000;
     private DetectListener mDetectListener;
+    private LowLightListener mLowLightListener;
+    private TimeOutListener mTimeOutListener;
     private final int[] innerSize = new int[2];
+
+    private boolean pause;
 
     public ZXingAnalyzer() {
         final Map<DecodeHintType, Object> hints = new Hashtable<>();
@@ -46,13 +63,31 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
 
     @Override
     public void analyze(@NonNull ImageProxy image) {
-        if (!SupportYuvFormats.contains(image.getFormat()))
+        if (!SupportYuvFormats.contains(image.getFormat())) {
             return;
+        }
+
+        final long cur = System.currentTimeMillis();
+        if (pause || cur - lastTS <= analyzeDelay) {
+            image.close();
+            return;
+        }
 
         final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
         buffer.rewind();
         byte[] data = new byte[buffer.remaining()];
         buffer.get(data);
+
+        long light = 0;
+        for (int i = 0; i < data.length; i += YSampleStep) {
+            light += (data[i] & 0xffL);
+        }
+        light /= (data.length / (float) YSampleStep);
+
+        if (mLowLightListener != null && lastTS != 0 &&
+                light < LowLightThread) {
+            mLowLightListener.lowLight((int) (light));
+        }
 
         final int deg = image.getImageInfo().getRotationDegrees();
         final int rotatedW = (deg % 180 == 0 ? image.getWidth() : image.getHeight());
@@ -72,6 +107,9 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
 
         final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 
+        if (lastDetectTS == 0)
+            lastDetectTS = cur;
+
         try {
             final Result result = reader.decode(bitmap);
             innerSize[0] = bitmap.getWidth();
@@ -80,10 +118,18 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
             if (mDetectListener != null)
                 mDetectListener.detect(result);
 
-        } catch (NotFoundException ignore) {
+            lastDetectTS = cur;
+        } catch (NotFoundException e) {
+            if (cur - lastDetectTS >= timeOutThread) {
+                if (mTimeOutListener != null) {
+                    mTimeOutListener.timeout();
+                }
+                lastDetectTS = cur;
+            }
         }
 
         image.close();
+        lastTS = cur;
     }
 
     public Result analyzeFromBmp(Bitmap bmp) throws NotFoundException {
@@ -120,8 +166,8 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
     }
 
     public float[] getCorrectCodeCenter(Result result,
-                                         int w, int h,
-                                         int deg) {
+                                        int w, int h,
+                                        int deg) {
         final float[] pos = computeCodeCenter(result.getResultPoints());
 
         // 现在普遍手机屏幕的长宽比都大于4:3，就不考虑高了
@@ -190,6 +236,38 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
     }
 
     public void setOnDetectListener(@NonNull DetectListener listener) {
-        this.mDetectListener = listener;
+        this.mDetectListener = Objects.requireNonNull(listener);
+    }
+
+    public interface LowLightListener {
+        void lowLight(int light);
+    }
+
+    public void setOnLowLightListener(@NonNull LowLightListener listener) {
+        this.mLowLightListener = Objects.requireNonNull(listener);
+    }
+
+    public interface TimeOutListener {
+        void timeout();
+    }
+
+    public void setOnTimeOutListener(@NonNull TimeOutListener listener) {
+        this.mTimeOutListener = Objects.requireNonNull(listener);
+    }
+
+    public void setTimeOutThread(int timeOutThread) {
+        this.timeOutThread = timeOutThread;
+    }
+
+    public int getTimeOutThread() {
+        return timeOutThread;
+    }
+
+    public void pause() {
+        pause = true;
+    }
+
+    public void resume() {
+        pause = false;
     }
 }

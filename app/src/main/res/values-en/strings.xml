@@ -30,4 +30,5 @@
     <string name="toggle_off">Off</string>
     <string name="settings_about">About</string>
     <string name="settings_toggle_vibrate">Use vibration</string>
+    <string name="exiting_msg">Click again to exit the app</string>
 </resources>

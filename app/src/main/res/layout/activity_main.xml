@@ -67,6 +67,7 @@
             app:layout_constraintStart_toStartOf="parent" />
 
         <ImageButton
+
             android:id="@+id/historyImgBtn"
             android:layout_width="36dp"
             android:layout_height="36dp"
