@@ -20,11 +20,11 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class Utils {
-    public static void applyShadow(ImageView v,
+    public static void applyShadow(ImageView view,
                                    int offsetX, int offsetY, int r,
                                    int shadowColor, int alpha
     ) {
-        final Drawable drawable = v.getDrawable();
+        final Drawable drawable = view.getDrawable();
         Bitmap bmp = Bitmap.createBitmap(
                 drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888
         );
@@ -37,7 +37,7 @@ public class Utils {
                 cvs.getWidth(), cvs.getHeight());
         drawable.draw(cvs);
         bmp = Objects.requireNonNull(
-                applyColorMaskBmp(bmp, v.getImageTintList().getDefaultColor())
+                applyColorMaskBmp(bmp, view.getImageTintList().getDefaultColor())
         );
 
         cvs.setBitmap(shadow);
@@ -64,11 +64,20 @@ public class Utils {
                 bmp, 0, 0, null
         );
 
-        v.setImageBitmap(result);
-        v.setImageTintList(null);
+        view.setImageBitmap(result);
+        view.setImageTintList(null);
 
         bmp.recycle();
         shadow.recycle();
+    }
+
+    public static void applyShadow(int offsetX, int offsetY, int r,
+                                   int shadowColor, int alpha,
+                                   ImageView... views) {
+        for (ImageView v : views) {
+            applyShadow(v, offsetX, offsetY, r,
+                    shadowColor, alpha);
+        }
     }
 
     public static Bitmap applyColorMaskBmp(@NonNull Bitmap src, int color) {

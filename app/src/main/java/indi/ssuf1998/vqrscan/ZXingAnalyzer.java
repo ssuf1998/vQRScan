@@ -2,17 +2,12 @@ package indi.ssuf1998.vqrscan;
 
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
-import android.os.Handler;
-import android.util.Log;
 import android.view.Surface;
-import android.widget.Toast;
 
-import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 
-import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
@@ -31,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import es.dmoral.toasty.Toasty;
-
 public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
     private final MultiFormatReader reader = new MultiFormatReader();
     private static final List<Integer> SupportYuvFormats = Arrays.asList(
@@ -41,13 +34,12 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
             ImageFormat.YUV_444_888
     );
     private static final int YSampleStep = 10;
-    private static final int LowLightThread = 60;
     private static final int analyzeDelay = 500;
     private long lastTS;
     private long lastDetectTS;
-    private int timeOutThread = 5000;
+    private int timeOutThreshold = 5000;
     private DetectListener mDetectListener;
-    private LowLightListener mLowLightListener;
+    private LightListener mLightListener;
     private TimeOutListener mTimeOutListener;
     private final int[] innerSize = new int[2];
 
@@ -84,9 +76,8 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
         }
         light /= (data.length / (float) YSampleStep);
 
-        if (mLowLightListener != null && lastTS != 0 &&
-                light < LowLightThread) {
-            mLowLightListener.lowLight((int) (light));
+        if (mLightListener != null && lastTS != 0) {
+            mLightListener.light((int) (light));
         }
 
         final int deg = image.getImageInfo().getRotationDegrees();
@@ -120,7 +111,7 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
 
             lastDetectTS = cur;
         } catch (NotFoundException e) {
-            if (cur - lastDetectTS >= timeOutThread) {
+            if (cur - lastDetectTS >= timeOutThreshold) {
                 if (mTimeOutListener != null) {
                     mTimeOutListener.timeout();
                 }
@@ -239,12 +230,12 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
         this.mDetectListener = Objects.requireNonNull(listener);
     }
 
-    public interface LowLightListener {
-        void lowLight(int light);
+    public interface LightListener {
+        void light(int light);
     }
 
-    public void setOnLowLightListener(@NonNull LowLightListener listener) {
-        this.mLowLightListener = Objects.requireNonNull(listener);
+    public void setOnLightListener(@NonNull LightListener listener) {
+        this.mLightListener = Objects.requireNonNull(listener);
     }
 
     public interface TimeOutListener {
@@ -255,12 +246,12 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
         this.mTimeOutListener = Objects.requireNonNull(listener);
     }
 
-    public void setTimeOutThread(int timeOutThread) {
-        this.timeOutThread = timeOutThread;
+    public void setTimeOutThreshold(int timeOutThreshold) {
+        this.timeOutThreshold = timeOutThreshold;
     }
 
-    public int getTimeOutThread() {
-        return timeOutThread;
+    public int getTimeOutThreshold() {
+        return timeOutThreshold;
     }
 
     public void pause() {

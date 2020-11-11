@@ -29,6 +29,7 @@ import androidx.camera.core.MeteringPoint;
 import androidx.camera.core.MeteringPointFactory;
 import androidx.camera.core.Preview;
 import androidx.camera.core.SurfaceOrientedMeteringPointFactory;
+import androidx.camera.core.TorchState;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -65,6 +66,8 @@ public class MainActivity extends mActivity {
 
     private ScanResultBottomSheet scanSheet;
     private MenuBottomSheet menuSheet;
+
+    private boolean lowLight = false;
 
     private boolean exiting = false;
 
@@ -111,7 +114,7 @@ public class MainActivity extends mActivity {
     @Override
     public void initUI() {
         providerFuture = ProcessCameraProvider.getInstance(this);
-
+        analyzer.setTimeOutThreshold(10000);
         scanSheet = new ScanResultBottomSheet(getString(R.string.scan_sheet_title));
 
         final List<MenuBottomSheetItem> items = new ArrayList<>();
@@ -127,15 +130,13 @@ public class MainActivity extends mActivity {
         menuSheet = new MenuBottomSheet(getString(R.string.menu_sheet_title), items);
         menuSheet.setDecoration(new RecycleViewDivider(this));
 
-        Utils.applyShadow(binding.menuImgBtn,
+        Utils.applyShadow(
                 0, 0, 11,
-                Color.BLACK, 128);
-        Utils.applyShadow(binding.pickPicImgBtn,
-                0, 0, 11,
-                Color.BLACK, 128);
-        Utils.applyShadow(binding.historyImgBtn,
-                0, 0, 11,
-                Color.BLACK, 128);
+                Color.BLACK, 128,
+                binding.menuImgBtn,
+                binding.pickPicImgBtn,
+                binding.historyImgBtn
+        );
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -172,8 +173,15 @@ public class MainActivity extends mActivity {
         menuSheet.setOnDismissListener(analyzer::resume);
 
         analyzer.setOnDetectListener(this::handleDetect);
-        analyzer.setOnLowLightListener(light -> {
-            Log.d("!!!", String.valueOf(light));
+
+        analyzer.setOnLightListener(light -> {
+            if (light < 60) {
+                lowLight = true;
+                binding.mEffectView.getTorch().getAnimator().resume();
+            } else {
+                lowLight = false;
+                binding.mEffectView.getTorch().dontDrawMe();
+            }
         });
         analyzer.setOnTimeOutListener(() -> {
             final float zoom = camera.getCameraInfo().getZoomState().getValue().getZoomRatio();
@@ -185,9 +193,16 @@ public class MainActivity extends mActivity {
         binding.mEffectView.setOnTouchListener((v, event) -> {
             final int action = event.getAction();
             if (action == MotionEvent.ACTION_UP) {
-                setFocus(event.getX(), event.getY());
+                if (camera.getCameraInfo().getTorchState().getValue() == TorchState.ON) {
+                    camera.getCameraControl().enableTorch(false);
+                } else {
+                    if (lowLight) {
+                        camera.getCameraControl().enableTorch(true);
+                    } else {
+                        setFocus(event.getX(), event.getY());
+                    }
+                }
             }
-
             return false;
         });
 
@@ -244,7 +259,10 @@ public class MainActivity extends mActivity {
         camera = provider.bindToLifecycle(
                 this, selector, preview, analysis);
 
-        binding.mEffectView.getScanBarAnim().start();
+        binding.mEffectView.getScanBar().getAnimator().start();
+
+        binding.mEffectView.getTorch().dontDrawMe();
+        binding.mEffectView.getTorch().getAnimator().start();
     }
 
     private void setFocus(float x, float y) {
@@ -278,11 +296,12 @@ public class MainActivity extends mActivity {
                         binding.mEffectView.getHeight(),
                         deg
                 );
-        binding.mEffectView.setDetectDotPos(center[0], center[1]);
-        binding.mEffectView.getDetectDotAnim().start();
+        binding.mEffectView.getDetectDot().setX((int) center[0]);
+        binding.mEffectView.getDetectDot().setY((int) center[1]);
+        binding.mEffectView.getDetectDot().getAnimator().start();
 
         new Handler().postDelayed(() -> showScanResult(result),
-                binding.mEffectView.getDetectDotAnim().getDuration());
+                binding.mEffectView.getDetectDot().getAnimator().getDuration());
     }
 
     private void showScanResult(Result result) {
