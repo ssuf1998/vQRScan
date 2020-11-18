@@ -66,7 +66,7 @@ public class TorchEffectElement extends EffectElement {
 //        torchLeft = (drawW - totalWidth) / 2;
 
         animator.setInterpolator(new LinearInterpolator());
-        animator.setDuration(2000);
+        animator.setDuration(1500);
         animator.setRepeatCount(ValueAnimator.INFINITE);
         animator.setRepeatMode(ValueAnimator.REVERSE);
 

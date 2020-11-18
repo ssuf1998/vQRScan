@@ -2,6 +2,7 @@ package indi.ssuf1998.vqrscan;
 
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
+import android.util.Log;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -36,11 +37,8 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
     private static final int YSampleStep = 10;
     private static final int analyzeDelay = 500;
     private long lastTS;
-    private long lastDetectTS;
-    private int timeOutThreshold = 5000;
     private DetectListener mDetectListener;
     private LightListener mLightListener;
-    private TimeOutListener mTimeOutListener;
     private final int[] innerSize = new int[2];
 
     private boolean pause;
@@ -98,9 +96,6 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
 
         final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 
-        if (lastDetectTS == 0)
-            lastDetectTS = cur;
-
         try {
             final Result result = reader.decode(bitmap);
             innerSize[0] = bitmap.getWidth();
@@ -109,14 +104,7 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
             if (mDetectListener != null)
                 mDetectListener.detect(result);
 
-            lastDetectTS = cur;
-        } catch (NotFoundException e) {
-            if (cur - lastDetectTS >= timeOutThreshold) {
-                if (mTimeOutListener != null) {
-                    mTimeOutListener.timeout();
-                }
-                lastDetectTS = cur;
-            }
+        } catch (NotFoundException ignore) {
         }
 
         image.close();
@@ -236,22 +224,6 @@ public class ZXingAnalyzer implements ImageAnalysis.Analyzer {
 
     public void setOnLightListener(@NonNull LightListener listener) {
         this.mLightListener = Objects.requireNonNull(listener);
-    }
-
-    public interface TimeOutListener {
-        void timeout();
-    }
-
-    public void setOnTimeOutListener(@NonNull TimeOutListener listener) {
-        this.mTimeOutListener = Objects.requireNonNull(listener);
-    }
-
-    public void setTimeOutThreshold(int timeOutThreshold) {
-        this.timeOutThreshold = timeOutThreshold;
-    }
-
-    public int getTimeOutThreshold() {
-        return timeOutThreshold;
     }
 
     public void pause() {

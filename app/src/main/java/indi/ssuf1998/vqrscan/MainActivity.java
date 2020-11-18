@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -68,6 +67,7 @@ public class MainActivity extends mActivity {
     private MenuBottomSheet menuSheet;
 
     private boolean lowLight = false;
+    private int lowLightDelay = 0;
 
     private boolean exiting = false;
 
@@ -114,7 +114,6 @@ public class MainActivity extends mActivity {
     @Override
     public void initUI() {
         providerFuture = ProcessCameraProvider.getInstance(this);
-        analyzer.setTimeOutThreshold(10000);
         scanSheet = new ScanResultBottomSheet(getString(R.string.scan_sheet_title));
 
         final List<MenuBottomSheetItem> items = new ArrayList<>();
@@ -175,18 +174,16 @@ public class MainActivity extends mActivity {
         analyzer.setOnDetectListener(this::handleDetect);
 
         analyzer.setOnLightListener(light -> {
-            if (light < 60) {
-                lowLight = true;
-                binding.mEffectView.getTorch().getAnimator().resume();
+            if (light < 64) {
+                lowLightDelay++;
+                if (lowLightDelay > 2) {
+                    lowLight = true;
+                    lowLightDelay = 0;
+                    binding.mEffectView.getTorch().getAnimator().resume();
+                }
             } else {
                 lowLight = false;
                 binding.mEffectView.getTorch().dontDrawMe();
-            }
-        });
-        analyzer.setOnTimeOutListener(() -> {
-            final float zoom = camera.getCameraInfo().getZoomState().getValue().getZoomRatio();
-            if (zoom < 2) {
-                camera.getCameraControl().setZoomRatio(zoom + 0.5f);
             }
         });
 
